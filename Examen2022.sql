@@ -54,11 +54,37 @@ BEGIN
 
 END $$
 
+DELIMITER $$
+
+CREATE FUNCTION crear_email (nombre VARCHAR(255), apellidos VARCHAR(255), dominio VARCHAR(255))
+RETURNS VARCHAR(255)
+DETERMINISTIC
+BEGIN
+    DECLARE email VARCHAR(255);
+    
+    SET email = CONCAT(SUBSTRING(nombre, 1, 1), SUBSTRING(apellidos, 1, 3), '@', dominio);
+    
+    RETURN email;
+END $$
+
+DELIMITER ;
+
+ALTER TABLE customers ADD COLUMN email VARCHAR(100);
+
+DELIMITER $$
+
+CREATE PROCEDURE actualizar_columna_email ()
+BEGIN
+    UPDATE customers
+    SET email = crear_email(customerName, contactLastName, 'empresa.net');
+END $$
+
+DELIMITER ;
 
 DELIMITER $$
 
 CREATE TRIGGER trigger_guardar_email_after_update
-AFTER update
+AFTER UPDATE 
 ON customers FOR EACH ROW
 BEGIN
         INSERT INTO log_cambios_email (customerNumber, customerName, fecha_hora, old_email, new_email)
@@ -66,3 +92,4 @@ BEGIN
 END $$
 
 DELIMITER ;
+
